@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NirogiQ — 5-Slide Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --ink: #f8fafc;
+      --muted: #94a3b8;
+      --blue: #38bdf8;
+      --blue-deep: #0284c7;
+      --accent: #34d399;
+      --warning: #fbbf24;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Plus Jakarta Sans", sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .deck-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .slide {
+      position: absolute;
+      width: min(94vw, 1100px);
+      height: min(85vh, 680px);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      transform: scale(0.96) translateY(20px);
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+    .slide.active {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+    .slide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(56, 189, 248, 0.12);
+      padding: 6px 14px;
+      border-radius: 999px;
+      width: fit-content;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #34d399 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.subtitle {
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 800px;
+      margin-bottom: 24px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      flex: 1;
+      align-content: center;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      flex: 1;
+      align-content: center;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card strong {
+      font-size: 18px;
+      color: #fff;
+    }
+    .card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .card .icon {
+      font-size: 24px;
+    }
+    .speaker-notes {
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid var(--blue);
+      padding: 12px 18px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-top: 16px;
+    }
+    .speaker-notes strong {
+      color: var(--blue);
+      text-transform: uppercase;
+      font-size: 10px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .footer-bar {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      border-top: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    button.btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    button.btn:hover {
+      background: #334155;
+      border-color: #475569;
+    }
+    .dots {
+      display: flex;
+      gap: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .dot.active {
+      width: 28px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+    .counter {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-container">
+
+    <!-- SLIDE 1 -->
+    <section class="slide active" id="slide-1">
+      <div>
+        <div class="slide-badge">Slide 01 · Vision & Overview</div>
+        <h1>NirogiQ: <span>Care, with clarity.</span></h1>
+        <p class="subtitle">A privacy-first healthcare companion designed to remove confusion from medicine routines using AI vision, clear scheduling, and multilingual voice reading.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <span class="icon">🔍</span>
+          <strong>The Packaging Problem</strong>
+          <p>Blister packs feature tiny, shiny, curved text that elderly patients and caregivers constantly struggle to read.</p>
+        </div>
+        <div class="card">
+          <span class="icon">💊</span>
+          <strong>Medication Errors</strong>
+          <p>Unclear prescriptions and missed reminder intervals lead to accidental double-dosing or missed vital care courses.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🌐</span>
+          <strong>Language Gaps</strong>
+          <p>Labels printed strictly in small English fonts exclude millions of regional and low-literacy users from independent care.</p>
+        </div>
+      </div>
+      <div class="speaker-notes">
+        <strong>Speaker Note</strong>
+        "Today, taking daily medications is needlessly stressful. NirogiQ transforms confusing blister packs into instant, readable text, simple alarms, and native voice audio."
+      </div>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide" id="slide-2">
+      <div>
+        <div class="slide-badge">Slide 02 · Feature 01</div>
+        <h1>AI Label Reading & <span>QR Scanner</span></h1>
+        <p class="subtitle">Turning mobile camera snapshots of foil strips and bottles into verified medical information.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <span class="icon">⚡</span>
+          <strong>Gemini AI OCR Engine</strong>
+          <p>Deep parsing extracts commercial name, strength (e.g. 500mg), active formula salt, and manufacturer within seconds.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🛡️</span>
+          <strong>Confidence Badge & Safety</strong>
+          <p>Tags text as 'High' or 'Not Sure'. Clearly instructs patients that AI assists transcription, not chemical verification.</p>
+        </div>
+        <div class="card">
+          <span class="icon">📷</span>
+          <strong>Instant QR Barcode Reader</strong>
+          <p>Decodes package QR codes via in-browser jsQR scanning without downloading bulky third-party scanner apps.</p>
+        </div>
+        <div class="card">
+          <span class="icon">✅</span>
+          <strong>1-Tap Verification & Save</strong>
+          <p>Patients review the extracted fields and seamlessly push them directly into their daily routine list.</p>
+        </div>
+      </div>
+      <div class="speaker-notes">
+        <strong>Speaker Note</strong>
+        "Users simply take a photo. Google Gemini reads the label text—even on curved or torn packaging—and extracts the exact dosage strength without making wild guesses."
+      </div>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="slide" id="slide-3">
+      <div>
+        <div class="slide-badge">Slide 03 · Feature 02</div>
+        <h1>Routine Tracker & <span>Alarm Function</span></h1>
+        <p class="subtitle">Structured timeline management that keeps today's doses front and center.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <span class="icon">⏰</span>
+          <strong>Time-of-Day Reminders</strong>
+          <p>Set custom reminder hours for morning, afternoon, or evening routines matching the doctor's prescription.</p>
+        </div>
+        <div class="card">
+          <span class="icon">📅</span>
+          <strong>Prescription Date Range</strong>
+          <p>Save start and finish dates so users know exactly when an antibiotic or short-term course should conclude.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🎯</span>
+          <strong>"NEXT" Dose Prioritization</strong>
+          <p>The dashboard intelligently computes and highlights the immediate next medication due, eliminating clutter.</p>
+        </div>
+      </div>
+      <div class="speaker-notes">
+        <strong>Speaker Note</strong>
+        "The routine tracker acts as the patient's command center. It highlights what is due next, sorts doses chronologically, and tracks prescription timelines."
+      </div>
+    </section>
+
+    <!-- SLIDE 4 -->
+    <section class="slide" id="slide-4">
+      <div>
+        <div class="slide-badge">Slide 04 · Feature 03</div>
+        <h1>Multilingual <span>Voice Accessibility</span></h1>
+        <p class="subtitle">Making essential medical instructions audible for elderly and multilingual users.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <span class="icon">🔊</span>
+          <strong>1-Tap Speech Engine</strong>
+          <p>A single tap reads aloud the drug name, reminder time, and special instructions at a calm, calibrated 0.88x speed.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🇮🇳</span>
+          <strong>Native Regional Languages</strong>
+          <p>Fully supports <strong>English</strong>, <strong>Hindi (हिंदी)</strong>, and <strong>Punjabi (ਪੰਜਾਬੀ)</strong> natively in the browser.</p>
+        </div>
+        <div class="card">
+          <span class="icon">👵</span>
+          <strong>Inclusive Design</strong>
+          <p>Eliminates reading fatigue for seniors, visually impaired individuals, or family members administering care.</p>
+        </div>
+      </div>
+      <div class="speaker-notes">
+        <strong>Speaker Note</strong>
+        "Accessibility is at the heart of NirogiQ. Pressing the speaker button speaks the instructions clearly in Hindi, Punjabi, or English, ensuring true independence."
+      </div>
+    </section>
+
+    <!-- SLIDE 5 -->
+    <section class="slide" id="slide-5">
+      <div>
+        <div class="slide-badge">Slide 05 · Tech & Architecture</div>
+        <h1>Privacy, Security & <span>Production Live</span></h1>
+        <p class="subtitle">Architected with strict data sovereignty, low latency, and zero tracking.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <span class="icon">🔒</span>
+          <strong>100% On-Device Privacy</strong>
+          <p>Personal profile, medicine lists, and notes are stored strictly in the client's localStorage. No remote user profiling.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🚀</span>
+          <strong>Deployed & Live on Vercel</strong>
+          <p>Production web app live at <strong>nirogiq.vercel.app</strong> with serverless multi-model fallback.</p>
+        </div>
+        <div class="card">
+          <span class="icon">📦</span>
+          <strong>Open Source on GitHub</strong>
+          <p>Repository fully version-controlled at <strong>github.com/VedantSoni2605/nirogiq</strong> with automated CI/CD.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🔮</span>
+          <strong>Future Roadmap</strong>
+          <p>Upcoming push notification chime alarms, offline Service Worker caching, and exportable PDF summaries for doctors.</p>
+        </div>
+      </div>
+      <div class="speaker-notes">
+        <strong>Speaker Note</strong>
+        "Health data must remain private. NirogiQ stores nothing on external databases. The app is live and fully functional today. Thank you!"
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer-bar">
+    <div class="counter" id="counter">Slide 1 of 5</div>
+    <div class="dots" id="dots">
+      <div class="dot active" onclick="goToSlide(0)"></div>
+      <div class="dot" onclick="goToSlide(1)"></div>
+      <div class="dot" onclick="goToSlide(2)"></div>
+      <div class="dot" onclick="goToSlide(3)"></div>
+      <div class="dot" onclick="goToSlide(4)"></div>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="prevSlide()">← Previous</button>
+      <button class="btn" onclick="nextSlide()">Next →</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const counter = document.getElementById('counter');
+
+    function update() {
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+      dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+      counter.textContent = `Slide ${current + 1} of ${slides.length}`;
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) { current++; update(); }
+    }
+
+    function prevSlide() {
+      if (current > 0) { current--; update(); }
+    }
+
+    function goToSlide(idx) {
+      current = idx; update();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+  </script>
+</body>
+</html>
