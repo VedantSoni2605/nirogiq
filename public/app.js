@@ -332,7 +332,11 @@ function settingsPage() {
     </section>
     <section class="settings-section" aria-labelledby="settings-about-title">
       <div class="settings-heading"><h2 id="settings-about-title">About</h2></div>
-      <div class="settings-about"><strong>NirogiQ</strong><span>Medicine support app</span><small>Version 1.0.0</small></div>
+      <div class="settings-about">
+        <strong>NirogiQ</strong><span>Medicine support app</span><small>Version 1.0.0</small>
+        <a href="/slides.html" target="_blank" style="margin-top:10px; display:inline-flex; align-items:center; gap:6px; color:var(--blue-deep); font-weight:700; font-size:12px;">📊 View 7-Slide Pitch Deck &amp; Video</a>
+        <a href="/NirogiQ_Pitch_Deck.pptx" download style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; color:var(--blue-deep); font-weight:700; font-size:12px;">📥 Download PowerPoint (.pptx)</a>
+      </div>
     </section>
     <section class="settings-section" aria-labelledby="settings-support-title">
       <div class="settings-heading"><h2 id="settings-support-title">Support</h2><p>Share a note or suggestion with the NirogiQ team.</p></div>

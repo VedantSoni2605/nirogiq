@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NirogiQ — Pitch Deck & Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b132b;
+      --card: #1c2541;
+      --border: #334155;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --accent: #34d399;
+      --warning: #fbbf24;
+      --text: #ffffff;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header.deck-header {
+      height: 64px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(11, 19, 43, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+    .brand span { color: var(--primary); }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .download-btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #0b132b;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+    }
+    .download-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+    }
+    .deck-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .slide {
+      position: absolute;
+      width: min(94vw, 1140px);
+      height: min(85vh, 690px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      transform: scale(0.97) translateY(18px);
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .slide.active {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: rgba(56, 189, 248, 0.12);
+      padding: 5px 12px;
+      border-radius: 999px;
+      width: fit-content;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(26px, 3.5vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      font-size: clamp(13px, 1.5vw, 16px);
+      color: var(--muted);
+      line-height: 1.5;
+      max-width: 820px;
+      margin-bottom: 20px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      flex: 1;
+      align-content: center;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      flex: 1;
+      align-content: center;
+    }
+    .card-box {
+      background: rgba(11, 19, 43, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-box .tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+    .card-box strong {
+      font-size: 15px;
+      color: #fff;
+    }
+    .card-box p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .video-wrap {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+    .video-player {
+      width: 100%;
+      height: 100%;
+      max-height: 420px;
+      border-radius: 14px;
+      background: #000;
+      border: 2px solid var(--primary);
+      object-fit: contain;
+    }
+    .step-card {
+      background: rgba(11, 19, 43, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .step-card.featured {
+      border-color: var(--primary);
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.15);
+    }
+    .step-card .num {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+    .step-card .step-tag {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: var(--primary);
+    }
+    .step-card h3 {
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .step-card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .voice-btn {
+      margin-top: 8px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+    }
+    .voice-btn:hover { background: var(--primary); color: #0b132b; }
+    .footer-bar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      border-top: 1px solid var(--border);
+      background: rgba(11, 19, 43, 0.95);
+    }
+    .btn-nav {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-nav:hover { background: #334155; }
+    .dots { display: flex; gap: 8px; }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--border); cursor: pointer; transition: all 0.25s ease;
+    }
+    .dot.active { width: 28px; border-radius: 999px; background: var(--primary); }
+    .slide-count { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <header class="deck-header">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="19" fill="#1C2541"/><circle cx="31" cy="32" r="20" fill="#0B132B" stroke="#38BDF8" stroke-width="3"/><path d="M22 41V22L41 41V22" stroke="#38BDF8" stroke-width="4" stroke-linecap="round"/><path d="M44 44L51 51" stroke="#38BDF8" stroke-width="3.5" stroke-linecap="round"/></svg>
+      NirogiQ <span>Pitch Deck</span>
+    </div>
+    <div class="header-actions">
+      <a href="/" class="btn-nav">Open Live App</a>
+      <a href="/NirogiQ_Pitch_Deck.pptx" class="download-btn" download>
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+        Download .PPTX File
+      </a>
+    </div>
+  </header>
+
+  <div class="deck-container">
+
+    <!-- SLIDE 1 -->
+    <section class="slide active">
+      <div>
+        <div class="badge">Slide 01 · Technical Architecture</div>
+        <h1>NirogiQ: Technical Foundation</h1>
+        <p class="subtitle">Production-grade architecture designed for sub-second vision inference, multilingual voice, and 100% on-device data sovereignty.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card-box">
+          <span class="tag">AI VISION ENGINE</span>
+          <strong>Google Gemini 3.5 Flash</strong>
+          <p>Multimodal OCR extracts commercial drug name, strength (e.g. 500mg), active salts, and manufacturer with automated fallback.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">SERVERLESS BACKEND</span>
+          <strong>Node.js on Vercel Edge</strong>
+          <p>Stateless /api/scan-image microservice with input sanitization, payload limits, strict CSP headers, and secure secret handling.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">BARCODE SCANNER</span>
+          <strong>Client-Side jsQR Engine</strong>
+          <p>Real-time matrix extraction directly on camera canvas streams with zero external API dependencies or latency.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">ACCESSIBILITY</span>
+          <strong>Web Speech API (TTS)</strong>
+          <p>Native voice synthesis running offline at a calibrated 0.88x speed for English, Hindi (हिंदी), and Punjabi (ਪੰਜਾਬੀ).</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">PRIVACY FIRST</span>
+          <strong>Zero-Knowledge Local Storage</strong>
+          <p>Prescription lists, profiles, and notes remain strictly on the patient's device (localStorage). Zero central database risks.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">FRONTEND ARCHITECTURE</span>
+          <strong>Progressive Web App (PWA)</strong>
+          <p>Mobile-first standalone web application with zero App Store friction, instant installability, and high contrast styling.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide">
+      <div>
+        <div class="badge">Slide 02 · Demonstration</div>
+        <h1>Live Product Video Demonstration</h1>
+        <p class="subtitle">Watch the real-time AI medicine label scanner extract packaging data in seconds.</p>
+      </div>
+      <div class="video-wrap">
+        <video class="video-player" controls autoplay muted loop playsinline>
+          <source src="/assets/demo_video.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="card-box">
+            <span class="tag">STEP 1 · CAPTURE</span>
+            <strong>Instant Pack Snap</strong>
+            <p>Captures blister foil, bottles, and boxes even with curved reflective surfaces or torn text.</p>
+          </div>
+          <div class="card-box">
+            <span class="tag">STEP 2 · EXTRACT</span>
+            <strong>Gemini AI Parsing</strong>
+            <p>Automatically isolates Brand Name, Strength (mg), Active Ingredients, and Confidence score.</p>
+          </div>
+          <div class="card-box">
+            <span class="tag">STEP 3 · 1-TAP SAVE</span>
+            <strong>Direct Routine Add</strong>
+            <p>Pushes extracted info into the patient's daily routine without manual typing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="slide">
+      <div>
+        <div class="badge">Slide 03 · User Journey</div>
+        <h1>How It Works — Simple as 1, 2, 3</h1>
+        <p class="subtitle">Zero learning curve. No accounts. Clear everyday care in three quick steps.</p>
+      </div>
+      <div class="grid-3">
+        <div class="step-card">
+          <div class="num">📸</div>
+          <div class="step-tag">STEP 01</div>
+          <h3>Scan Medicine</h3>
+          <p>Snap a photo of your box or QR code.<br>The AI reads the exact name and dosage strength for you.</p>
+        </div>
+        <div class="step-card featured">
+          <div class="num">⏰</div>
+          <div class="step-tag">STEP 02</div>
+          <h3>Set Time & Alarm</h3>
+          <p>Choose the time on your prescription (e.g. 08:00 AM).<br>Add optional start and finish dates for treatment courses.</p>
+        </div>
+        <div class="step-card">
+          <div class="num">🔊</div>
+          <div class="step-tag">STEP 03</div>
+          <h3>Hear & Never Miss</h3>
+          <p>Tap the speaker button to hear instructions aloud.<br>The dashboard always highlights your immediate <strong>NEXT</strong> dose.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 -->
+    <section class="slide">
+      <div>
+        <div class="badge">Slide 04 · Inclusivity</div>
+        <h1>Care That Speaks Your Language</h1>
+        <p class="subtitle">Empowering elderly and regional language speakers through native audio playback.</p>
+      </div>
+      <div class="grid-3">
+        <div class="step-card">
+          <div class="num">🇬🇧</div>
+          <h3>English (en-IN)</h3>
+          <p>"Medicine Paracetamol 500 mg. Reminder time 08:00 AM. Take after food."</p>
+          <button class="voice-btn" onclick="speakDemo('en-IN', 'Medicine Paracetamol 500 milligrams. Reminder time 8:00 AM. Take after food.')">▶ Listen English</button>
+        </div>
+        <div class="step-card featured">
+          <div class="num">🇮🇳</div>
+          <h3>हिंदी · Hindi (hi-IN)</h3>
+          <p>"आपकी दवा पैरासिटामोल 500 मिलीग्राम। समय सुबह 08:00 बजे। भोजन के बाद लें।"</p>
+          <button class="voice-btn" onclick="speakDemo('hi-IN', 'आपकी दवा पैरासिटामोल 500 मिलीग्राम। समय सुबह 8:00 बजे।')">▶ Listen हिंदी</button>
+        </div>
+        <div class="step-card">
+          <div class="num">🇮🇳</div>
+          <h3>ਪੰਜਾਬੀ · Punjabi (pa-IN)</h3>
+          <p>"ਤੁਹਾਡੀ ਦਵਾਈ ਪੈਰਾਸੀਟਾਮੋਲ 500 ਮਿਲੀਗ੍ਰਾਮ। ਸਮਾਂ ਸਵੇਰੇ 08:00 ਵਜੇ। ਖਾਣੇ ਤੋਂ ਬਾਅਦ ਲਵੋ।"</p>
+          <button class="voice-btn" onclick="speakDemo('pa-IN', 'ਤੁਹਾਡੀ ਦਵਾਈ ਪੈਰਾਸੀਟਾਮੋਲ 500 ਮਿਲੀਗ੍ਰਾਮ। ਸਮਾਂ ਸਵੇਰੇ 8:00 ਵਜੇ।')">▶ Listen ਪੰਜਾਬੀ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 -->
+    <section class="slide">
+      <div>
+        <div class="badge">Slide 05 · Monetization</div>
+        <h1>The Business Model & Revenue Streams</h1>
+        <p class="subtitle">A dual B2B & B2C healthcare monetization model built for sustainable growth.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card-box">
+          <span class="tag">B2B · PRIMARY REVENUE</span>
+          <strong>Pharmacy & Telehealth White-Label SDK</strong>
+          <p>Retail pharmacies (e.g. Apollo, Tata 1mg, CVS) license NirogiQ's Gemini vision scanner API for customer refill scanning at $0.02 - $0.05/scan.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">B2C · SUBSCRIPTION</span>
+          <strong>NirogiQ Family Caregiver Tier ($2.99/mo)</strong>
+          <p>Free for individuals. Premium unlocks remote adherence monitoring for sons/daughters, SMS alerts when parents miss doses, and doctor exports.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">B2B · ENTERPRISE</span>
+          <strong>Hospital Post-Discharge System ($5k - $20k/yr)</strong>
+          <p>Hospitals issue discharge summaries with NirogiQ QR links to ensure post-operative patients adhere strictly to antibiotic and pain management courses.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">DATA · B2B</span>
+          <strong>Pharma Packaging Legibility Insights</strong>
+          <p>Aggregated, privacy-compliant readability analytics showing pharmaceutical brands which blister foils suffer high glare and user confusion in the field.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 -->
+    <section class="slide">
+      <div>
+        <div class="badge">Slide 06 · Market Traction</div>
+        <h1>Why NirogiQ Wins</h1>
+        <p class="subtitle">Solving core barriers that cause standard health apps to be uninstalled.</p>
+      </div>
+      <div class="grid-3">
+        <div class="step-card">
+          <div class="num" style="color:var(--primary); font-weight:800;">10x</div>
+          <h3>Faster than Typing</h3>
+          <p>Eliminates spelling complex chemical compounds like 'Amoxicillin Clavulanate'.</p>
+        </div>
+        <div class="step-card">
+          <div class="num" style="color:var(--accent); font-weight:800;">0</div>
+          <h3>Account Barriers</h3>
+          <p>Zero registration, passwords, or phone verification required to use the app.</p>
+        </div>
+        <div class="step-card">
+          <div class="num" style="color:var(--warning); font-weight:800;">$0</div>
+          <h3>Hardware Needed</h3>
+          <p>Runs seamlessly on any smartphone without expensive smart pillbox hardware.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 -->
+    <section class="slide">
+      <div>
+        <div class="badge">Slide 07 · Conclusion</div>
+        <h1>Thank You!</h1>
+        <p class="subtitle">Care, with clarity. Empowering patients with intelligent vision, simple routines, and native voice care.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card-box" style="border-color:var(--primary);">
+          <span class="tag">OPEN FOR JUDGES' QUESTIONS</span>
+          <strong style="font-size:22px; margin: 6px 0;">Any Doubts or Clinical Questions?</strong>
+          <p style="font-size:13px; line-height:1.6;">We welcome questions on our clinical safety disclaimers, offline capability, pilot partnerships with healthcare providers, and vision OCR benchmark data.</p>
+        </div>
+        <div class="card-box">
+          <span class="tag">PROJECT & CONTACT INFO</span>
+          <p style="margin-top:6px;"><strong>Founder:</strong> Vedant Soni</p>
+          <p><strong>Live Web App:</strong> <a href="https://nirogiq.vercel.app" target="_blank" style="color:var(--primary);">https://nirogiq.vercel.app</a></p>
+          <p><strong>GitHub:</strong> <a href="https://github.com/VedantSoni2605/nirogiq" target="_blank" style="color:var(--primary);">github.com/VedantSoni2605/nirogiq</a></p>
+          <div style="margin-top:14px;">
+            <a href="/NirogiQ_Pitch_Deck.pptx" class="download-btn" download>📥 Download PowerPoint (.PPTX)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer-bar">
+    <div class="slide-count" id="counter">Slide 1 of 7</div>
+    <div class="dots" id="dots">
+      <div class="dot active" onclick="goTo(0)"></div>
+      <div class="dot" onclick="goTo(1)"></div>
+      <div class="dot" onclick="goTo(2)"></div>
+      <div class="dot" onclick="goTo(3)"></div>
+      <div class="dot" onclick="goTo(4)"></div>
+      <div class="dot" onclick="goTo(5)"></div>
+      <div class="dot" onclick="goTo(6)"></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-nav" onclick="prev()">← Previous</button>
+      <button class="btn-nav" onclick="next()">Next →</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const counter = document.getElementById('counter');
+
+    function update() {
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+      counter.textContent = `Slide ${current + 1} of ${slides.length}`;
+    }
+    function next() { if (current < slides.length - 1) { current++; update(); } }
+    function prev() { if (current > 0) { current--; update(); } }
+    function goTo(idx) { current = idx; update(); }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') next();
+      if (e.key === 'ArrowLeft') prev();
+    });
+
+    function speakDemo(lang, text) {
+      if (!('speechSynthesis' in window)) return alert('Speech synthesis not supported in this browser.');
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.88;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }
+  </script>
+</body>
+</html>
