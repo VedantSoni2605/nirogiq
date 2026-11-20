@@ -1,61 +1,80 @@
-# Vedhita
+# NirogiQ
 
-Vedhita is a small, mobile-friendly medicine support app. It can read text from a medicine photo, scan QR codes, save a personal medicine list, and collect feedback.
+NirogiQ is a small app that helps you keep your medicine list and schedule in one place. It can read printed text from a medicine photo and show the text inside a QR code.
 
-> **Health and safety:** Vedhita does not diagnose, prescribe, or choose doses. A camera or AI reading can be wrong. Check medicine information with your package, prescription, doctor, or pharmacist.
+NirogiQ is not a doctor. Check medicine details and instructions with your package, prescription, doctor, or pharmacist.
 
-## What you need
+## Run NirogiQ on your computer
 
-- Node.js 18 or newer
-- A Gemini API key to use AI label reading
-- A modern browser; camera access works on `localhost` or an HTTPS website
+You need Node.js 18 or newer and npm.
 
-## Run the app
+1. Open a terminal in this project folder.
+2. Install the packages:
 
-1. Open a terminal in this folder.
-2. Make a private settings file by copying `.env.example` to `.env`.
-3. Open `.env` and add your Gemini API key after `GEMINI_API_KEY=`.
-4. Start Vedhita:
+   ```sh
+   npm install
+   ```
+
+   If PowerShell blocks that command, use `npm.cmd install`.
+3. Copy `.env.example` to `.env`. In PowerShell:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+4. Open `.env` and add your Google Gemini API key after `GEMINI_API_KEY=`. The default vision model is `gemini-3.5-flash-lite`; change `GEMINI_MODEL` if needed.
+5. Start the app:
 
    ```sh
    npm start
    ```
 
-5. Open <http://localhost:3000>.
+   If PowerShell blocks that command, use `npm.cmd start`.
+6. Open <http://localhost:3000> in your browser.
 
-The app has no package dependencies. If you skip the API key, the rest of the app still works, but AI label reading will show a setup message.
+The medicine list, QR reader, and other screens work without a Gemini key. The key is needed only for reading text from a medicine photo.
 
-## Features
+## What the app can do
 
-- A short welcome and privacy-consent screen
-- A dashboard, medicine list, and optional reminder times saved in this browser
-- English, Hindi, or Punjabi read-aloud support using your browser's speech voices
-- Medicine label reading with the Gemini API
-- Camera and image QR scanning in browsers that support `BarcodeDetector`
-- A five-question health check-in with general next steps, not a diagnosis
-- A feedback form; notes stay in this browser
-- Responsive layout for phones and computers
+- Save medicine names, strengths, prescription instructions, and reminder times.
+- Save optional start and end dates from a prescription. The app displays the schedule but does not send phone notifications.
+- Read visible text from a chosen medicine photo with Google Gemini. The app marks unclear text as “Not sure”; the model does not independently verify medicine identity or authenticity. Check the package, prescription, or ask a pharmacist.
+- Read the contents of a QR code. A QR code does not prove that a medicine is genuine.
+- Read saved medicine details aloud in English, Hindi, or Punjabi.
+- Store your name, medicines, and feedback in this browser.
+- Guide new users through a short feature intro and one-time profile and consent setup.
+- Let you update your name and read-aloud language in Settings from the bottom navigation.
 
-## Privacy and API key
+## How the code works
 
-Your name, feedback, and saved medicines are stored in the browser's local storage. The medicine photo you choose is sent to this app's server, then to Gemini to read the visible label text. Personal profile details are not included in that request.
+1. `index.html` opens the app and loads its local scripts and styles.
+2. `app.js` displays each screen, handles button clicks, and saves your list in the browser.
+3. `styles.css` controls the colors, spacing, and mobile layout.
+4. `server.js` serves the app and handles `/api/scan-image`. It reads `GEMINI_API_KEY` from `.env` and sends a chosen label photo to Google Gemini for text reading.
 
-The Gemini key is read by `server.js` from the `.env` file and is never placed in browser code. Do not commit `.env` or paste an API key into `app.js`. `.gitignore` already excludes `.env`.
+## Main files
 
-## Project files
+- `index.html` - the app page
+- `app.js` - screens, medicines, schedules, and scanning
+- `styles.css` - the app design
+- `server.js` - the local server and Gemini connection
+- `assets/nirogiq-mark.svg` - the app logo
+- `assets/app-icon.png` - the install icon
+- `manifest.webmanifest` - the name and settings used when installing the app
+- `package.json` - the packages the app needs
 
-- `index.html` — page entry point
-- `styles.css` — colours, layout, and mobile styles
-- `app.js` — screens, navigation, camera access, and browser storage
-- `server.js` — local web server and private Gemini API request
-- `assets/vedhita-mark.svg` — simple Vedhita logo
+## Privacy and safety
 
-## Before sharing publicly
+- Your name, medicines, schedules, and feedback stay in this browser; they do not sync to another device.
+- Browser storage is not encrypted. Keep your computer account private and locked.
+- A medicine photo is sent to this app's server and Google Gemini only when you choose to scan a label.
+- Keep your Gemini API key in `.env`. Never put it in `app.js` or share it in a message.
+- Gemini API usage may incur charges; check Google's current pricing and limits before scanning.
+- If an API key is exposed, revoke it with its provider and create a replacement.
+- `.gitignore` excludes `.env` so the key is not added to the project by mistake.
+- The app server listens only on your computer. The scan endpoint has no login, so do not expose port 3000 or change the server to listen on a network address.
+- Public hosting needs HTTPS, access control, and request limits in front of the scan endpoint. Set the HSTS header at the HTTPS proxy; this local HTTP server cannot set it.
+- The server allows camera access only for this app and blocks microphone and location access.
+- Camera access is requested only when you open the scanner. Camera access requires `localhost` or an HTTPS connection.
+- NirogiQ does not choose medicines or doses. Ask a pharmacist or doctor if you are unsure.
 
-- Set `GEMINI_API_KEY` as a secret environment variable on your hosting service.
-- Deploy over HTTPS so browsers can grant camera access.
-- Review the Gemini service's privacy and data-retention terms.
-- Test camera permissions and QR scanning on the browsers and phones you plan to support.
-- Ask a qualified clinician and pharmacist to review any health content before using Vedhita in real care.
-
-Vedhita is a prototype, not a medical device or a substitute for professional care.
+NirogiQ is a prototype, not a medical device or a replacement for professional care.
