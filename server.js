@@ -4,6 +4,7 @@ const path = require("node:path");
 const scanHandler = require("./api/scan-image");
 
 const ROOT = __dirname;
+const PUBLIC_ROOT = path.join(__dirname, "public");
 loadEnvFile();
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -48,8 +49,8 @@ function serveFile(request, response) {
   }
 
   const relativePath = pathname === "/" ? "index.html" : pathname.slice(1);
-  const filePath = path.resolve(ROOT, relativePath);
-  const relative = path.relative(ROOT, filePath);
+  const filePath = path.resolve(PUBLIC_ROOT, relativePath);
+  const relative = path.relative(PUBLIC_ROOT, filePath);
   if (relative.startsWith("..") || path.isAbsolute(relative) || relative.split(path.sep).some(part => part.startsWith("."))) {
     response.writeHead(404).end("Not found");
     return;
