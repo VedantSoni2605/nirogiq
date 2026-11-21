@@ -627,3 +627,4 @@ async function createDeck() {
 }
 
 createDeck().catch(console.error);
+

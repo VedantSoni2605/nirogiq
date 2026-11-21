@@ -4,8 +4,25 @@ const storage = {
   medicines: "nirogiq-medicines",
   feedback: "nirogiq-feedback",
   consent: "nirogiq-consent",
-  language: "nirogiq-language"
+  language: "nirogiq-language",
+  theme: "nirogiq-theme"
 };
+
+function getInitialTheme() {
+  const saved = localStorage.getItem(storage.theme);
+  if (saved === "light" || saved === "dark") return saved;
+  // Default to Royal Blue Dark mode as requested
+  return "dark";
+}
+
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) {
+    metaTheme.setAttribute("content", isDark ? "#070c18" : "#f5f9ff");
+  }
+}
 
 function migrateLegacyStorage() {
   // Keep saved data when an existing user upgrades from Vedhita.
@@ -24,6 +41,7 @@ migrateLegacyStorage();
 const state = {
   name: localStorage.getItem(storage.name) || "",
   language: localStorage.getItem(storage.language) || "en-IN",
+  theme: getInitialTheme(),
   medicines: readList(storage.medicines),
   feedback: readList(storage.feedback),
   route: "splash",
@@ -33,6 +51,8 @@ const state = {
   qrCanvas: null,
   matchRejected: false
 };
+
+applyTheme(state.theme);
 
 window.cycleRefImage = function(img) {
   if (!img) return;
@@ -127,9 +147,11 @@ function navigation() {
 }
 
 function shell(content) {
+  const isDark = state.theme === "dark";
+  const themeToggle = `<button class="theme-toggle-btn" data-action="toggle-theme" aria-label="Switch to ${isDark ? "Light" : "Royal Blue Dark"} mode" title="Switch to ${isDark ? "Light" : "Royal Blue Dark"} mode">${icon(isDark ? "sun" : "moon")}</button>`;
   const header = state.route === "home"
-    ? `<header class="mobile-header home-mobile-header"><span>How can we help you today?</span></header>`
-    : `<header class="mobile-header">${brand()}</header>`;
+    ? `<header class="mobile-header home-mobile-header"><span>How can we help you today?</span>${themeToggle}</header>`
+    : `<header class="mobile-header">${brand()}${themeToggle}</header>`;
   return `<div class="layout"><section class="workspace">${header}${content}</section>
     <div class="mobile-nav">${navigation()}</div></div>`;
 }
@@ -422,6 +444,21 @@ function feedbackPage() {
 
 function settingsPage() {
   return shell(`<main class="page">${pageHeader("APP PREFERENCES", "Settings", "Make NirogiQ work for you.")}
+    <section class="settings-section" aria-labelledby="settings-theme-title">
+      <div class="settings-heading"><h2 id="settings-theme-title">Theme &amp; Appearance</h2><p>Switch between the custom Royal Blue Dark theme and Classic Light.</p></div>
+      <div class="theme-picker-grid">
+        <button class="theme-card ${state.theme === "dark" ? "active" : ""}" data-action="set-theme-dark" type="button">
+          <span class="theme-preview royal-preview"></span>
+          <strong>Royal Blue Dark</strong>
+          <small>Night-mode palette</small>
+        </button>
+        <button class="theme-card ${state.theme === "light" ? "active" : ""}" data-action="set-theme-light" type="button">
+          <span class="theme-preview light-preview"></span>
+          <strong>Classic Light</strong>
+          <small>Clean day palette</small>
+        </button>
+      </div>
+    </section>
     <section class="settings-section" aria-labelledby="settings-profile-title">
       <div class="settings-heading"><h2 id="settings-profile-title">Your profile</h2><p>Update your name and read-aloud language.</p></div>
       <form class="settings-form" id="settings-form">
@@ -477,6 +514,31 @@ function handleAction(action, button) {
     return render();
   }
   if (["home", "medicines", "scanner", "feedback", "settings"].includes(action)) return go(action);
+  if (action === "toggle-theme") {
+    const next = state.theme === "dark" ? "light" : "dark";
+    state.theme = next;
+    localStorage.setItem(storage.theme, next);
+    applyTheme(next);
+    render();
+    showMessage(next === "dark" ? "Royal Blue Dark mode active" : "Classic Light mode active");
+    return;
+  }
+  if (action === "set-theme-dark") {
+    state.theme = "dark";
+    localStorage.setItem(storage.theme, "dark");
+    applyTheme("dark");
+    render();
+    showMessage("Royal Blue Dark mode active");
+    return;
+  }
+  if (action === "set-theme-light") {
+    state.theme = "light";
+    localStorage.setItem(storage.theme, "light");
+    applyTheme("light");
+    render();
+    showMessage("Classic Light mode active");
+    return;
+  }
   if (action === "add-medicine") return go("add-medicine");
   if (action === "confirm-match") {
     if (state.scanResult) state.scanResult.verified = true;
