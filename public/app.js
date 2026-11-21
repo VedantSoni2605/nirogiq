@@ -30,7 +30,27 @@ const state = {
   introStep: 0,
   camera: null,
   cameraMode: "",
-  qrCanvas: null
+  qrCanvas: null,
+  matchRejected: false
+};
+
+window.cycleRefImage = function(img) {
+  if (!img) return;
+  try {
+    const list = JSON.parse(img.dataset.nextCandidates || "[]");
+    let idx = Number(img.dataset.candidateIdx || "0") + 1;
+    if (idx < list.length && list[idx]) {
+      img.dataset.candidateIdx = String(idx);
+      img.src = list[idx];
+      return;
+    }
+  } catch {}
+  img.style.display = "none";
+  const parent = img.parentElement;
+  if (parent) {
+    const placeholder = parent.querySelector(".image-fallback-placeholder");
+    if (placeholder) placeholder.style.display = "flex";
+  }
 };
 
 function readList(key) {
@@ -223,10 +243,33 @@ function medicinePeriod(medicine) {
 
 function addMedicinePage() {
   const result = state.scanResult || {};
+  const isRejected = state.matchRejected;
+  const initialName = isRejected ? "" : (result.name || "");
+  const initialStrength = isRejected ? "" : (result.strength || "");
+
+  const verificationBadge = result.verified ? `
+    <div class="verified-banner">
+      <span class="verified-badge-icon">${icon("shield-check")}</span>
+      <div>
+        <strong>Verified match with reference photo</strong>
+        <p>Checked against online product packaging for ${escapeHtml(result.name)}.</p>
+      </div>
+    </div>
+  ` : (isRejected ? `
+    <div class="verified-banner manual-banner">
+      <span class="verified-badge-icon">${icon("edit-3")}</span>
+      <div>
+        <strong>Entering medicine manually</strong>
+        <p>Type the exact medicine name and strength from your prescription.</p>
+      </div>
+    </div>
+  ` : "");
+
   return shell(`<main class="page">${pageHeader("SAVE TO YOUR ROUTINE", "Add a medicine", "Check the name against your package. Add schedule details only as written on your prescription.")}
+    ${verificationBadge}
     <form class="quiz-card" id="medicine-form">
-      <label for="medicine-name">Name on the package</label><input id="medicine-name" name="name" maxlength="120" value="${escapeHtml(result.name || "")}" required />
-      <label for="medicine-strength">Strength on the package</label><input id="medicine-strength" name="strength" maxlength="80" value="${escapeHtml(result.strength || "")}" placeholder="For example, 500 mg" />
+      <label for="medicine-name">Name on the package</label><input id="medicine-name" name="name" maxlength="120" value="${escapeHtml(initialName)}" required placeholder="e.g. Dolo 650 or Augmentin 625" />
+      <label for="medicine-strength">Strength on the package</label><input id="medicine-strength" name="strength" maxlength="80" value="${escapeHtml(initialStrength)}" placeholder="For example, 500 mg" />
       <label for="medicine-time">Reminder time (optional)</label><input id="medicine-time" name="time" type="time" />
       <div class="date-range">
         <label for="medicine-start-date">Start date (optional)<input id="medicine-start-date" name="startDate" type="date" /></label>
@@ -276,7 +319,72 @@ function resultPage() {
     ["Manufacturer", result.manufacturer],
     ["Other text", result.otherText]
   ].filter(([, value]) => value);
+
+  const hasName = Boolean(result.name);
+  const refImage = result.referenceImage;
+  const candidateImagesJson = escapeHtml(JSON.stringify(result.referenceImages || []));
+
+  const verificationSection = hasName ? `
+    <section class="verification-card" aria-labelledby="verification-heading">
+      <div class="verification-header">
+        <span class="verification-badge">${icon("globe")} INTERNET REFERENCE PHOTO</span>
+        <h2 id="verification-heading">Is this the same medicine you are looking for?</h2>
+        <p>We found this authentic reference photo from the internet for <strong>${escapeHtml(result.name)}${result.strength ? ` (${escapeHtml(result.strength)})` : ""}</strong>.</p>
+      </div>
+
+      <div class="reference-image-box">
+        ${refImage ? `
+          <img src="${escapeHtml(refImage)}"
+               alt="${escapeHtml(result.name)} packaging"
+               class="reference-image"
+               referrerpolicy="no-referrer"
+               data-next-candidates="${candidateImagesJson}"
+               data-candidate-idx="0"
+               onerror="window.cycleRefImage(this)" />
+          <div class="image-source-badge"><span>🌐 Web product photo</span></div>
+        ` : ""}
+        <div class="image-fallback-placeholder" style="${refImage ? 'display:none;' : 'display:flex;'}">
+          <span class="scan-icon">${icon("pill")}</span>
+          <strong>${escapeHtml(result.name)}</strong>
+          <small>No online photo found for this exact brand</small>
+        </div>
+      </div>
+
+      ${state.matchRejected ? `
+        <div class="rejection-box">
+          <span class="rejection-alert">${icon("circle-alert")} Mismatch reported</span>
+          <p>The online photo does not match what you have. You can scan again with better lighting or enter the medicine name manually.</p>
+          <div class="rejection-actions">
+            <button class="button secondary" data-action="scanner">${icon("scan-line")} Scan again</button>
+            <button class="button primary" data-action="add-medicine">${icon("edit-3")} Enter manually</button>
+          </div>
+          <button class="text-button" style="margin-top:12px; display:inline-block;" data-action="reset-verification">Re-check options</button>
+        </div>
+      ` : `
+        <p class="choice-prompt-label">Please confirm whether this is your medicine:</p>
+        <div class="verification-choices">
+          <button class="choice-btn confirm-btn" data-action="confirm-match" aria-label="Yes, this is the same medicine">
+            <span class="choice-icon-wrap check-wrap">${icon("check")}</span>
+            <span class="choice-text">
+              <strong>Yes, this is it</strong>
+              <small>Matches my medicine</small>
+            </span>
+          </button>
+
+          <button class="choice-btn reject-btn" data-action="reject-match" aria-label="No, not the same medicine">
+            <span class="choice-icon-wrap cross-wrap">${icon("x")}</span>
+            <span class="choice-text">
+              <strong>No, different</strong>
+              <small>Not this medicine</small>
+            </span>
+          </button>
+        </div>
+      `}
+    </section>
+  ` : "";
+
   return shell(`<main class="page">${pageHeader("PLEASE CHECK THIS", "Text found on the label", "This is an AI reading of the photo, not a verified medicine identity.")}
+    ${verificationSection}
     <div class="scan-confidence ${isReadable ? "readable" : "uncertain"}"><span>${icon(isReadable ? "scan-line" : "circle-alert")}</span>
       <div><strong>${isReadable ? "Text looks readable — please verify it" : "Not sure — the text may be unclear"}</strong>
         <p>${isReadable ? "This estimate is about text readability only. It does not verify medicine identity or authenticity." : "Try another photo with less glare, or ask a pharmacist to read the package."}</p></div>
@@ -286,7 +394,7 @@ function resultPage() {
       ${result.notes ? `<p class="result-note">${escapeHtml(result.notes)}</p>` : ""}
     </div>
     <div class="safety-strip warning-strip"><span>${icon("circle-alert")}</span><p><strong>Please confirm with a professional</strong><br>The selected model can read printed details but cannot independently confirm the product or its authenticity. Compare with your prescription or ask a pharmacist.</p></div>
-    ${result.name && isReadable ? `<button class="button primary full" data-action="save-scan">Review text &amp; add to My medicines</button>` : ""}
+    ${result.name && isReadable && !state.matchRejected ? `<button class="button primary full" data-action="save-scan">Review text &amp; add to My medicines</button>` : ""}
     <button class="button secondary full" data-action="scanner">Try another scan</button>
   </main>`);
 }
@@ -370,6 +478,22 @@ function handleAction(action, button) {
   }
   if (["home", "medicines", "scanner", "feedback", "settings"].includes(action)) return go(action);
   if (action === "add-medicine") return go("add-medicine");
+  if (action === "confirm-match") {
+    if (state.scanResult) state.scanResult.verified = true;
+    state.matchRejected = false;
+    showMessage("Medicine confirmed! Adding to your routine.");
+    return go("add-medicine");
+  }
+  if (action === "reject-match") {
+    state.matchRejected = true;
+    render();
+    showMessage("Match rejected. You can rescan or enter details manually.");
+    return;
+  }
+  if (action === "reset-verification") {
+    state.matchRejected = false;
+    return render();
+  }
   if (action === "start-medicine-camera") return openCamera("medicine");
   if (action === "start-qr-camera") return openCamera("qr");
   if (action === "stop-camera") return go("scanner");
@@ -593,6 +717,7 @@ async function scanMedicine(file) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not read the image.");
     state.scanResult = data;
+    state.matchRejected = false;
     go("scan-result");
   } catch (error) {
     if (message) {

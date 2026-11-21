@@ -46,6 +46,65 @@ function parseJsonSafe(text) {
   }
 }
 
+async function fetchMedicineImages(name, strength = "") {
+  if (!name || typeof name !== "string") return [];
+  const cleanName = name.replace(/[^\w\s-]/g, " ").replace(/\s+/g, " ").trim();
+  const cleanStrength = strength ? String(strength).replace(/[^\w\s-]/g, " ").replace(/\s+/g, " ").trim() : "";
+  const query = `${cleanName} ${cleanStrength} medicine strip packaging`.trim();
+
+  // Primary: DuckDuckGo image search for real retail medicine packaging
+  try {
+    const res = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      },
+      signal: AbortSignal.timeout(5000)
+    });
+    const html = await res.text();
+    const vqdMatch = html.match(/vqd=([0-9-]+)/) || html.match(/vqd="([0-9-]+)"/);
+    if (vqdMatch) {
+      const vqd = vqdMatch[1];
+      const imgRes = await fetch(`https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(query)}&vqd=${vqd}&f=,,,`, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+          "Referer": "https://duckduckgo.com/"
+        },
+        signal: AbortSignal.timeout(6000)
+      });
+      if (imgRes.ok) {
+        const data = await imgRes.json();
+        if (Array.isArray(data.results)) {
+          const valid = data.results
+            .map(r => r.image)
+            .filter(url => typeof url === "string" && (url.startsWith("https://") || url.startsWith("http://")))
+            .slice(0, 5);
+          if (valid.length > 0) return valid;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("DuckDuckGo image search error:", err.message);
+  }
+
+  // Fallback: Wikipedia Summary API
+  try {
+    const firstWord = cleanName.split(" ")[0];
+    const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstWord)}`, {
+      headers: { "User-Agent": "NirogiQ/1.0 (medtech app)" },
+      signal: AbortSignal.timeout(3500)
+    });
+    if (wikiRes.ok) {
+      const wikiData = await wikiRes.json();
+      const thumb = wikiData.thumbnail?.source || wikiData.originalimage?.source;
+      if (thumb) return [thumb];
+    }
+  } catch (err) {
+    console.warn("Wikipedia image fallback error:", err.message);
+  }
+
+  return [];
+}
+
 function readBody(req) {
   if (req.body && typeof req.body === "object") return Promise.resolve(req.body);
   if (req.body && typeof req.body === "string") {
@@ -160,6 +219,16 @@ module.exports = async function handler(req, res) {
       const name = safeText(item.name, 120);
       const strength = safeText(item.strength, 80);
       const reportedConfidence = safeText(item.confidence, 20).toLowerCase();
+
+      let referenceImages = [];
+      if (name) {
+        try {
+          referenceImages = await fetchMedicineImages(name, strength);
+        } catch (imgErr) {
+          console.warn("Failed to fetch reference images:", imgErr.message);
+        }
+      }
+
       return sendJson(res, 200, {
         name,
         strength,
@@ -167,7 +236,9 @@ module.exports = async function handler(req, res) {
         manufacturer: safeText(item.manufacturer, 120),
         otherText: safeText(item.otherText, 400),
         notes: safeText(item.notes, 240),
-        confidence: name && strength && ["high", "low", "not_sure"].includes(reportedConfidence) ? reportedConfidence : "not_sure"
+        confidence: name && strength && ["high", "low", "not_sure"].includes(reportedConfidence) ? reportedConfidence : "not_sure",
+        referenceImage: referenceImages[0] || null,
+        referenceImages
       });
     } catch (err) {
       console.error(`Error attempting model ${model}:`, err.name || "UnknownError", err.message);
